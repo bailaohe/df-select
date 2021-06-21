@@ -1,6 +1,7 @@
 from sqlparse.sql import Operation, Function, Identifier, Parenthesis, IdentifierList, Comparison
+
+from ..errors import DFSelectExecError
 from ..util import check_col_name, is_skip_token
-from . import udf as udf_repo
 
 _agg_func_dict = dict(
     avg='mean',
@@ -71,7 +72,7 @@ def eval_func(fn: Function, columns, row_key):
                 for token_in_paren in agg_func_args:
                     if isinstance(token_in_paren, IdentifierList):
                         # func_str += eval_func_args(token_in_paren, columns, row_key)
-                        raise RuntimeError("fuck")
+                        raise DFSelectExecError(f'only single-param agg-function is supported')
                     if isinstance(token_in_paren, Function):
                         func_str += eval_func(token_in_paren, columns, row_key)
                     elif isinstance(token_in_paren, Identifier):

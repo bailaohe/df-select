@@ -1,6 +1,10 @@
-class ParadeSqlParseError(RuntimeError):
+class DFSelectParseError(RuntimeError):
     pass
 
 
-class ParadeSqlExecError(RuntimeError):
+class DFSelectExecError(RuntimeError):
+    pass
+
+
+class DFSelectContextError(RuntimeError):
     pass

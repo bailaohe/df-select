@@ -1,7 +1,7 @@
 from sqlparse.sql import Comment, Identifier
 from sqlparse.tokens import Name, Punctuation, Literal
 
-from .errors import ParadeSqlParseError, ParadeSqlExecError
+from .errors import DFSelectParseError, DFSelectExecError
 
 
 def is_skip_token(item, reserve_punctuation=False):
@@ -54,7 +54,7 @@ def parse_identifier(identifier: Identifier, allow_alias=True, allow_literal=Fal
     toks = [t for t in identifier.tokens if not is_skip_token(t, reserve_punctuation=True) and not t.is_keyword]
 
     if not allow_literal and toks[0].ttype in Literal:
-        raise ParadeSqlParseError('invalid identifier:', str(identifier), 'literal not supported')
+        raise DFSelectParseError('invalid identifier:', str(identifier), 'literal not supported')
 
     if len(toks) <= 2:
         identifier_value = eval_literal_value(toks[0]) if toks[0].ttype in Literal else toks[0].value
@@ -62,7 +62,7 @@ def parse_identifier(identifier: Identifier, allow_alias=True, allow_literal=Fal
         if len(toks) == 1:
             return identifier_value, toks[0].value.lower()
         if not allow_alias:
-            raise ParadeSqlParseError('invalid identifier:', str(identifier), 'alias not supported')
+            raise DFSelectParseError('invalid identifier:', str(identifier), 'alias not supported')
         # if toks[0] == toks[1]:
         #     raise ParadeSqlParseError('invalid identifier:', str(identifier), 'the same value of alias and key')
         return identifier_value, toks[1].value.lower()
@@ -70,11 +70,11 @@ def parse_identifier(identifier: Identifier, allow_alias=True, allow_literal=Fal
     else:
         if toks[0].ttype is Name and toks[1].value == '.' and toks[2].ttype is Name:
             if len(toks) > 4:
-                raise ParadeSqlParseError('invalid identifier:', str(identifier))
+                raise DFSelectParseError('invalid identifier:', str(identifier))
             identifier_value = toks[0].value + '.' + toks[2].value
             return identifier_value, identifier_value.lower() if len(toks) == 3 else toks[3].value.lower()
 
-    raise ParadeSqlParseError('invalid identifier:', str(identifier))
+    raise DFSelectParseError('invalid identifier:', str(identifier))
 
 
 def eval_literal_value(item):
@@ -88,7 +88,7 @@ def check_col_name(col_name: str, col_set):
     if final_name not in col_set:
         final_name = final_name.split('.')[-1]
     if final_name not in col_set:
-        raise ParadeSqlExecError('invalid column {}'.format(col_name))
+        raise DFSelectExecError('invalid column {}'.format(col_name))
     return final_name
 
 
