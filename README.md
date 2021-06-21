@@ -8,3 +8,7 @@ https://github.com/mindsdb/mindsdb_sql
 
 I would not code this ...
 
+## RoadMap
+
+* table miss-loader
+* exec-engine
