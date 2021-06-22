@@ -20,7 +20,7 @@ def eval_oper(oper: Operation, columns, row_key):
         if isinstance(token, Function):
             oper_str += eval_func(token, columns, row_key)
         elif isinstance(token, Identifier):
-            oper_str += row_key + '["' + check_col_name(token.value, columns) + '"]'
+            oper_str += f'{row_key}["{check_col_name(token.value, columns)}"]'
         elif isinstance(token, (Operation, Comparison)):
             oper_str += eval_oper(token, columns, row_key)
         else:
@@ -34,7 +34,7 @@ def eval_func_args(args: IdentifierList, columns, row_key):
         if isinstance(arg, Function):
             func_arg_str += eval_func(arg, columns, row_key)
         elif isinstance(arg, Identifier):
-            func_arg_str += row_key + '["' + check_col_name(arg.value, columns) + '"]'
+            func_arg_str += f'{row_key}["{check_col_name(arg.value, columns)}"]'
         elif isinstance(arg, (Operation, Comparison)):
             func_arg_str += eval_oper(arg, columns, row_key)
         else:
@@ -46,7 +46,7 @@ def eval_func(fn: Function, columns, row_key):
     func_str = ''
     func_key = str(fn.tokens[0])
     if func_key.lower() not in _agg_func_dict.keys():
-        func_str = '_load_udf("' + str(fn.tokens[0]) + '")'
+        func_str = f'_load_udf("{func_key}")'
         for token in fn.tokens[1:]:
             if isinstance(token, Parenthesis):
                 for token_in_paren in token.tokens:
@@ -55,7 +55,7 @@ def eval_func(fn: Function, columns, row_key):
                     elif isinstance(token_in_paren, Function):
                         func_str += eval_func(token_in_paren, columns, row_key)
                     elif isinstance(token_in_paren, Identifier):
-                        func_str += row_key + '["' + check_col_name(token_in_paren.value, columns) + '"]'
+                        func_str += f'{row_key}["{check_col_name(token_in_paren.value, columns)}"]'
                     elif isinstance(token_in_paren, (Operation, Comparison)):
                         func_str += eval_oper(token_in_paren, columns, row_key)
                     else:
@@ -76,7 +76,7 @@ def eval_func(fn: Function, columns, row_key):
                     if isinstance(token_in_paren, Function):
                         func_str += eval_func(token_in_paren, columns, row_key)
                     elif isinstance(token_in_paren, Identifier):
-                        func_str += row_key + '["' + check_col_name(token_in_paren.value, columns) + '"]'
+                        func_str += f'{row_key}["{check_col_name(token_in_paren.value, columns)}"]'
                     elif isinstance(token_in_paren, (Operation, Comparison)):
                         func_str += eval_oper(token_in_paren, columns, row_key)
                     else:
