@@ -423,11 +423,6 @@ def _parse_where_clause(where: Where):
                 continue
         if where_seen:
             filter_expr += str(item)
-            # if isinstance(item, Comparison):
-            #     filter = _parse_filter_cond(item, ctx)
-            #     filters.append((bool_op, filter))
-            # elif item.is_keyword and item.value.upper() in ('AND', 'OR'):
-            #     bool_op = item.value.upper()
         else:
             if item.value.upper() == 'WHERE':
                 where_seen = True
