@@ -3,8 +3,8 @@ from pandas.core.groupby import DataFrameGroupBy
 from sqlparse.sql import Identifier
 
 from .expr import eval_expr
-from ..context import ctx_load_table
-from ..errors import DFSelectExecError
+from ..context import ctx_load_table, ctx_config_get_table_loaders
+from ..errors import DFSelectExecError, DFSelectContextError
 from ..log import log
 from ..util import check_col_name, is_col_literal, reparse_token, squeeze_blank
 
@@ -93,11 +93,15 @@ def exec_LOAD(df, ctx: dict, table: tuple):
 def _load_table(ctx: dict, table: tuple):
     table_source, table_alias = table
     df = None
-    if str(table_source).startswith('@'):
-        # join the table from the external datasource
-        pass
-    else:
+    try:
         df = ctx_load_table(ctx, table_source, table_alias)
+    except DFSelectContextError as e:
+        extra_table_loaders = ctx_config_get_table_loaders(ctx)
+        if extra_table_loaders:
+            for extra_table_loader in extra_table_loaders:
+                df = extra_table_loader(table_source)
+        if df is None:
+            raise e
 
     return df
 

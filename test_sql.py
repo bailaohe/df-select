@@ -1,8 +1,14 @@
-from dfselect import parse_select, exec_operators, df_select
+from dfselect import parse_select, exec_operators, df_select, ctx_init
 import pandas as pd
+
+from dfselect.context import ctx_add_table, ctx_config_add_table_loader
 
 sql_naive = """
 select 3.14 from tbl;
+"""
+
+sql_ext = """
+select * from @ext_table
 """
 
 # sql_simple = """
@@ -31,13 +37,23 @@ where a.inst_id > 0 and a.state = FUN(3) and a.inst_id in (
 ) limit 10;
 """
 
+
+def _tbl_loader_external(table_key):
+    if str(table_key).startswith('@'):
+        # join the table from the external datasource
+        return pd.DataFrame({'id': [1, 2, 3], 'name': ['baihe', 'wyq', 'ann']})
+    return None
+
+
 if __name__ == '__main__':
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [3, 4, 5], 'c': [8, 8, 7]})
     df2 = pd.DataFrame({'b': [3, 5, 4], 'c': [7, 8, 8], 'd': [10, 11, 12]})
 
-    tables = dict(df=df, df2=df2)
-    result = df_select(sql_simple, tables=tables)
+    ctx = ctx_init(None)
+    ctx_add_table(ctx, 'df', df)
+    ctx_add_table(ctx, 'df2', df2)
+    ctx_config_add_table_loader(ctx, _tbl_loader_external)
+
+    result = df_select(sql_ext, ctx=ctx)
     print('select result:')
     print(result)
-
-
