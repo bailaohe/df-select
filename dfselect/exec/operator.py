@@ -2,12 +2,11 @@ import pandas as pd
 from pandas.core.groupby import DataFrameGroupBy
 from sqlparse.sql import Identifier
 
+from .expr import eval_expr
 from ..context import ctx_load_table
 from ..errors import DFSelectExecError
-from .expr import eval_expr
-from .aggexpr import eval_agg_expr
-from ..util import check_col_name, is_col_literal, reparse_token, squeeze_blank
 from ..log import log
+from ..util import check_col_name, is_col_literal, reparse_token, squeeze_blank
 
 
 def exec_JOIN(df, ctx: dict, join_table, join_mode, join_exprs):
@@ -43,7 +42,7 @@ def exec_PROJECT(df, ctx: dict, *columns):
                 conds.append('"' + agg_column[1] + '":pd.Series(r.index).count()')
             else:
                 col_item = reparse_token(agg_column[0])
-                conds.append('"' + agg_column[1] + '":' + eval_agg_expr(col_item, gf._selected_obj.columns, 'r'))
+                conds.append('"' + agg_column[1] + '":' + eval_expr(col_item, gf._selected_obj.columns, 'r'))
 
         group_by_expr = 'pd.Series({' + ','.join(conds) + '})'
         log.debug('generated group-by expr:')

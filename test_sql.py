@@ -36,7 +36,7 @@ if __name__ == '__main__':
     df2 = pd.DataFrame({'b': [3, 5, 4], 'c': [7, 8, 8], 'd': [10, 11, 12]})
 
     tables = dict(df=df, df2=df2)
-    result = df_select(sql_group, tables=tables)
+    result = df_select(sql_simple, tables=tables)
     print('select result:')
     print(result)
 
