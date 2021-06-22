@@ -32,8 +32,8 @@ setup(
 
     install_requires=['pandas'],
 
-    packages=find_packages('dfselect'),
-    package_dir=({'df_select': 'dfselect'}),
+    packages=find_packages('.'),
+    package_dir=({'dfselect': 'dfselect'}),
     zip_safe=False,
 
     include_package_data=True,
