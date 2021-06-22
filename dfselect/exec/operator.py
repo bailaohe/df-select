@@ -10,6 +10,15 @@ from ..util import check_col_name, is_col_literal, reparse_token, squeeze_blank
 
 
 def exec_JOIN(df, ctx: dict, join_table, join_mode, join_exprs):
+    """
+    join the major table with the join_table
+    :param df: the major table data object
+    :param ctx: the context object
+    :param join_table: the target table data to join
+    :param join_mode: the join mode: left/right/inner
+    :param join_exprs: the join expression
+    :return: joined table data
+    """
     join_table_alias = join_table[1]
     join_df = _load_table(ctx, join_table)
     left_on = []
