@@ -364,6 +364,8 @@ def _parse_from_clause(tokens, offset: int = 0):
                 raise DFSelectParseError(
                     "comma splitted tables is not supported in from-clause near '{seg}', use join instead".format(
                         seg=str(item)))
+            if isinstance(item, Where):
+                return major_table, join_clauses, offset + idx
             if 'JOIN' not in item.value.upper():
                 continue
 

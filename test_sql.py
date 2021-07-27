@@ -15,8 +15,12 @@ select * from @ext_table
 # select a, c from df left join df2 on df.b = df2.b and df.c = df2.c where c in (7,8) and b == 3
 # """
 
+# sql_simple = """
+# select a, b, t2.b, b+2, a-b, ifnull(b, 10), if(b > 3,1,-1) from df as t1 left join df2 as t2 on t1.c = t2.c order by a+b desc limit 3
+# """
+
 sql_simple = """
-select a, b, t2.b, b+2, a-b, ifnull(b, 10), if(b > 3,1,-1) from df as t1 left join df2 as t2 on t1.c = t2.c order by a+b desc limit 3
+select a, b, b+2, a-b, ifnull(b, 10), if(b > 3,1,-1) from df where b = 4 
 """
 # select a from df as t1 left join df2 as t2 on t1.c = t2.c and t1.b = t2.b where (c in (7,) or c in (8,)) and b in (3, 5) and a = 1 order by c asc, b desc
 # select 123 as x, a, f(a, b+1) + 1, b, t2.b, c from df as t1 left join df2 as t2 on t1.c = t2.c where (c in (7,) or c in (8,)) and b in (3, 5) and a = 1 order by c asc, b desc
@@ -54,6 +58,6 @@ if __name__ == '__main__':
     ctx_add_table(ctx, 'df2', df2)
     ctx_config_add_table_loader(ctx, _tbl_loader_external)
 
-    result = df_select(sql_ext, ctx=ctx)
+    result = df_select(sql_simple, ctx=ctx)
     print('select result:')
     print(result)
