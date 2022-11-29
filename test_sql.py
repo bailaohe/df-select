@@ -1,7 +1,7 @@
-from dfselect import parse_select, exec_operators, df_select, ctx_init
 import pandas as pd
 
-from dfselect.context import ctx_add_table, ctx_config_add_table_loader
+from dfselect import df_select, ctx_init
+from dfselect.context import ctx_add_table, ctx_config_add_table_loader, ctx_config_set_exec_engine
 
 sql_naive = """
 select 3.14 from tbl;
@@ -49,6 +49,8 @@ def _tbl_loader_external(table_key):
     return None
 
 
+from dfselect.exec import pandas as pdexec
+
 if __name__ == '__main__':
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [3, 4, 5], 'c': [8, 8, 7]})
     df2 = pd.DataFrame({'b': [3, 5, 4], 'c': [7, 8, 8], 'd': [10, 11, 12]})
@@ -57,6 +59,8 @@ if __name__ == '__main__':
     ctx_add_table(ctx, 'df', df)
     ctx_add_table(ctx, 'df2', df2)
     ctx_config_add_table_loader(ctx, _tbl_loader_external)
+
+    ctx_config_set_exec_engine(ctx, pdexec)
 
     result = df_select(sql_simple, ctx=ctx)
     print('select result:')

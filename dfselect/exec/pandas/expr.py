@@ -1,7 +1,7 @@
 from sqlparse.sql import Operation, Function, Identifier, Parenthesis, IdentifierList, Comparison
 
-from ..errors import DFSelectExecError
-from ..util import check_col_name, is_skip_token
+from dfselect.errors import DFSelectExecError
+from dfselect.util import check_col_name, is_skip_token
 
 _agg_func_dict = dict(
     avg='mean',

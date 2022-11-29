@@ -3,10 +3,10 @@ from pandas.core.groupby import DataFrameGroupBy
 from sqlparse.sql import Identifier
 
 from .expr import eval_expr
-from ..context import ctx_load_table, ctx_config_get_table_loaders
-from ..errors import DFSelectExecError, DFSelectContextError
-from ..log import log
-from ..util import check_col_name, is_col_literal, reparse_token, squeeze_blank
+from dfselect.context import ctx_load_table, ctx_config_get_table_loaders
+from dfselect.errors import DFSelectExecError, DFSelectContextError
+from dfselect.log import log
+from dfselect.util import check_col_name, is_col_literal, reparse_token, squeeze_blank
 
 
 def exec_JOIN(df, ctx: dict, join_table, join_mode, join_exprs):
