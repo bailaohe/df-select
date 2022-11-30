@@ -11,8 +11,6 @@ _CONF_TABLE_LOADERS = 'table_loaders'
 # the config key to user-defined executor engine
 _CONF_EXEC_ENGINE = 'exec_engine'
 
-_EXEC_ENGINES = {}
-
 
 def ctx_init(init_ctx: dict = None, tables: dict = None, config: dict = None):
     """

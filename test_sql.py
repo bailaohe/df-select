@@ -55,14 +55,14 @@ if __name__ == '__main__':
     df = pd.DataFrame({'a': [1, 2, 3], 'b': [3, 4, 5], 'c': [8, 8, 7], 'z': ['baihe', 'wyq', 'anny']})
     df2 = pd.DataFrame({'b': [3, 5, 4], 'c': [7, 8, 8], 'd': [10, 11, 12]})
 
-    ctx = ctx_init(None)
+    ctx = ctx_init(config=dict(odps=dict(access_id='', secret_access_key='', project='', endpoint='')))
     ctx_add_table(ctx, 'df', df)
     ctx_add_table(ctx, 'df2', df2)
     ctx_config_add_table_loader(ctx, _tbl_loader_external)
 
     ctx_config_set_exec_engine(ctx, pdexec)
 
-    result = df_select("select * from df where z like '%bai%'", ctx=ctx)
+    result = df_select("select * from df zz where z like '%bai%'", ctx=ctx)
     print('select result:')
     print(result)
 

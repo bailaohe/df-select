@@ -1,13 +1,17 @@
-import pandas as pd
-from pandas.core.groupby import DataFrameGroupBy
+# import pandas as pd
+# from pandas.core.groupby import DataFrameGroupBy
+import odps as o
 from sqlparse.sql import Identifier
 
+import odps
+
 from .expr import eval_expr
-from dfselect.context import ctx_load_table, ctx_config_get_table_loaders
+from dfselect.context import ctx_load_table, ctx_config_get_table_loaders, ctx_config_add_table_loader, ctx_get_config
 from dfselect.errors import DFSelectExecError, DFSelectContextError
 from dfselect.log import log
 from dfselect.util import check_col_name, is_col_literal, reparse_token, squeeze_blank
 
+_o = None
 
 def exec_JOIN(df, ctx: dict, join_table, join_mode, join_exprs):
     """
@@ -36,7 +40,7 @@ def exec_JOIN(df, ctx: dict, join_table, join_mode, join_exprs):
 
 
 def exec_PROJECT(df, ctx: dict, *columns):
-    if isinstance(df, pd.DataFrame):
+    if isinstance(df, odps.df.DataFrame):
         df = _extend_columns(df, *columns)
         col_names = list(map(lambda t: t[1], columns))
         proj_col_names = [check_col_name(c, df.columns) for c in col_names]
@@ -99,8 +103,16 @@ def exec_LOAD(df, ctx: dict, table: tuple):
     return _load_table(ctx, table)
 
 
-def register_table_loaders(ctx: dict):
-    pass
+def initialize(ctx: dict):
+    global _o
+    from odps import ODPS
+    odps_conn_config = ctx_get_config(ctx, 'odps')
+    _o = ODPS(**odps_conn_config)
+
+    def _tbl_loader_odps(table_key):
+        return _o.get_table(table_key)
+
+    ctx_config_add_table_loader(_tbl_loader_odps)
 
 
 def _load_table(ctx: dict, table: tuple):
@@ -129,7 +141,7 @@ def _load_udf(func_code: str):
 
 
 def _extend_columns(df, *columns):
-    if isinstance(df, pd.DataFrame):
+    if isinstance(df, odps.df.DataFrame):
         assign_map = dict()
         for column in columns:
             col = column[0]

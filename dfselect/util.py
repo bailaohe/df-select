@@ -59,37 +59,39 @@ def parse_identifier(identifier: Identifier, allow_alias=True, allow_literal=Fal
     :return: the parsed identifier pair of form (identifier_name, identifier_alias)
     """
 
-    # filter the sub-tokens of identifier
-    # reserve the punctuation to support 'table1.col1 as alias' like identifier
-    toks = [t for t in identifier.tokens if not is_skip_token(t, reserve_punctuation=True) and not t.is_keyword]
+    return str(identifier.normalized), identifier.get_alias() if identifier.has_alias() else identifier.get_real_name()
 
-    # report error if we do not support literal to be identifier
-    if not allow_literal and toks[0].ttype in Literal:
-        raise DFSelectParseError('invalid identifier:', str(identifier), 'literal not supported')
-
-    # for simple identifier
-    if len(toks) <= 2:
-        identifier_value = eval_literal_value(toks[0]) if toks[0].ttype in Literal else toks[0].value
-
-        # if the alias is not provided, use the identifier name as alias
-        if len(toks) == 1:
-            return identifier_value, toks[0].value.lower()
-        # if no alias is supported, report error
-        if not allow_alias:
-            raise DFSelectParseError('invalid identifier:', str(identifier), 'alias not supported')
-        # if toks[0] == toks[1]:
-        #     raise ParadeSqlParseError('invalid identifier:', str(identifier), 'the same value of alias and key')
-        return identifier_value, toks[1].value.lower()
-
-    else:
-        # process the 'table1.col1 as alias' like identifier
-        if toks[0].ttype is Name and toks[1].value == '.' and toks[2].ttype is Name:
-            if len(toks) > 4:
-                raise DFSelectParseError('invalid identifier:', str(identifier))
-            identifier_value = toks[0].value + '.' + toks[2].value
-            return identifier_value, identifier_value.lower() if len(toks) == 3 else toks[3].value.lower()
-
-    raise DFSelectParseError('invalid identifier:', str(identifier))
+    # # filter the sub-tokens of identifier
+    # # reserve the punctuation to support 'table1.col1 as alias' like identifier
+    # toks = [t for t in identifier.tokens if not is_skip_token(t, reserve_punctuation=True) and not t.is_keyword]
+    #
+    # # report error if we do not support literal to be identifier
+    # if not allow_literal and toks[0].ttype in Literal:
+    #     raise DFSelectParseError('invalid identifier:', str(identifier), 'literal not supported')
+    #
+    # # for simple identifier
+    # if len(toks) <= 2:
+    #     identifier_value = eval_literal_value(toks[0]) if toks[0].ttype in Literal else toks[0].value
+    #
+    #     # if the alias is not provided, use the identifier name as alias
+    #     if len(toks) == 1:
+    #         return identifier_value, toks[0].value.lower()
+    #     # if no alias is supported, report error
+    #     if not allow_alias:
+    #         raise DFSelectParseError('invalid identifier:', str(identifier), 'alias not supported')
+    #     # if toks[0] == toks[1]:
+    #     #     raise ParadeSqlParseError('invalid identifier:', str(identifier), 'the same value of alias and key')
+    #     return identifier_value, toks[1].value.lower()
+    #
+    # else:
+    #     # process the 'table1.col1 as alias' like identifier
+    #     if toks[0].ttype is Name and toks[1].value == '.' and toks[2].ttype is Name:
+    #         if len(toks) > 4:
+    #             raise DFSelectParseError('invalid identifier:', str(identifier))
+    #         identifier_value = toks[0].value + '.' + toks[2].value
+    #         return identifier_value, identifier_value.lower() if len(toks) == 3 else toks[3].value.lower()
+    #
+    # raise DFSelectParseError('invalid identifier:', str(identifier))
 
 
 def eval_literal_value(item):
