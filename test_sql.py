@@ -52,7 +52,7 @@ def _tbl_loader_external(table_key):
 from dfselect.exec import pandas as pdexec
 
 if __name__ == '__main__':
-    df = pd.DataFrame({'a': [1, 2, 3], 'b': [3, 4, 5], 'c': [8, 8, 7]})
+    df = pd.DataFrame({'a': [1, 2, 3], 'b': [3, 4, 5], 'c': [8, 8, 7], 'z': ['baihe', 'wyq', 'anny']})
     df2 = pd.DataFrame({'b': [3, 5, 4], 'c': [7, 8, 8], 'd': [10, 11, 12]})
 
     ctx = ctx_init(None)
@@ -62,6 +62,16 @@ if __name__ == '__main__':
 
     ctx_config_set_exec_engine(ctx, pdexec)
 
-    result = df_select(sql_simple, ctx=ctx)
+    result = df_select("select * from df where z like '%bai%'", ctx=ctx)
     print('select result:')
     print(result)
+
+# import pandas as pd
+# from dfsql import sql_query
+#
+# df = pd.DataFrame({
+#     "animal": ["cat", "dog", "cat", "dog"],
+#     "height": [23,  100, 25, 71]
+# })
+# df.head()
+# print(sql_query("SELECT (1 + 2)>2 from animals_df", animals_df=df))

@@ -418,16 +418,49 @@ def _parse_where_clause(where: Where):
     :return: the parsed filter-list
     """
     where_seen = False
-    filter_expr = ''
+    filter_expr_str = ''
     for item in where.tokens:
         if is_skip_token(item):
             if not where_seen:
                 continue
         if where_seen:
-            filter_expr += str(item)
+            filter_expr_str += str(item)
         else:
             if item.value.upper() == 'WHERE':
                 where_seen = True
                 continue
             raise DFSelectParseError("invalid token in where-class: '{seg}'".format(seg=str(item)))
-    return filter_expr
+
+    if filter_expr_str:
+        filter_expr = reparse_token(filter_expr_str)
+        filter_expr_str = _rewrite_filter_expr(filter_expr)
+
+    return filter_expr_str
+
+
+def _rewrite_filter_expr(filter_expr):
+    rewritten_tokens = []
+    for filter_token in filter_expr.tokens:
+        if is_skip_token(filter_token):
+            continue
+        if isinstance(filter_token, Comparison):
+            rewritten_tokens.append(_rewrite_filter_expr(filter_token))
+        else:
+            rewritten_tokens.append(str(filter_token))
+
+    if len(rewritten_tokens) == 3 and rewritten_tokens[1].lower() == 'like':
+        like_val = rewritten_tokens[2].strip()
+        if like_val.startswith('\'') or like_val.startswith('"') or like_val.endswith('\'') or like_val.endswith('"'):
+            if like_val.startswith('\'') or like_val.startswith('"'):
+                like_val = like_val[1:]
+            if like_val.endswith('\'') or like_val.endswith('"'):
+                like_val = like_val[:-1]
+            if like_val.startswith('%') and not like_val.endswith('%'):
+                return f'{rewritten_tokens[0]}.str.endswith("{like_val[1:]}")'
+            elif like_val.endswith('%') and not like_val.startswith('%'):
+                return f'{rewritten_tokens[0]}.str.startswith("{like_val[:-1]}")'
+            elif like_val.startswith('%') and like_val.endswith('%'):
+                return f'{rewritten_tokens[0]}.str.contains("{like_val[1:-1]}")'
+            else:
+                return f'{rewritten_tokens[0]}.str.contains("{like_val}")'
+    return ' '.join(rewritten_tokens)
