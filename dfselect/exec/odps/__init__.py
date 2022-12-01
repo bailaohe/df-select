@@ -1,7 +1,6 @@
 # import pandas as pd
 # from pandas.core.groupby import DataFrameGroupBy
-import odps
-from odps.df.expr.expressions import SliceCollectionExpr, CollectionExpr
+from odps.df.expr.expressions import CollectionExpr
 from sqlparse.sql import Identifier
 
 from dfselect.context import ctx_load_table, ctx_config_get_table_loaders, ctx_config_add_table_loader, ctx_get_config
@@ -114,6 +113,10 @@ def initialize(ctx: dict):
         return _o.get_table(table_key).to_df()
 
     ctx_config_add_table_loader(ctx, _tbl_loader_odps)
+
+
+def output(result):
+    return result.to_pandas()
 
 
 def _load_table(ctx: dict, table: tuple):

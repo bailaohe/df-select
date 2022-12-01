@@ -1,4 +1,4 @@
-from .context import ctx_init
+from .context import ctx_init, ctx_config_get_exec_engine
 from .parse import parse_select
 from .exec import exec_operators
 
@@ -19,4 +19,7 @@ def df_select(query: str, ctx: dict = None, tables: dict = None, config: dict = 
         tables = {**tables, **kwargs}
     ctx = ctx_init(ctx, tables=tables, config=config)
     result = exec_operators(operators, ctx)
+    engine = ctx_config_get_exec_engine(ctx)
+    if hasattr(engine, 'output'):
+        result = engine.output(result)
     return result
