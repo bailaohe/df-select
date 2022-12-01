@@ -1,6 +1,7 @@
 # import pandas as pd
 # from pandas.core.groupby import DataFrameGroupBy
 from odps.df.expr.expressions import CollectionExpr
+from odps.df.expr.groupby import GroupBy
 from sqlparse.sql import Identifier
 
 from dfselect.context import ctx_load_table, ctx_config_get_table_loaders, ctx_config_add_table_loader, ctx_get_config
@@ -44,10 +45,9 @@ def exec_PROJECT(df, ctx: dict, *columns):
         col_names = list(map(lambda t: t[1], columns))
         proj_col_names = [check_col_name(c, [sc.name for sc in df.columns]) for c in col_names]
         return df[proj_col_names]
-    # elif isinstance(df, DataFrameGroupBy):
-    else:
+    elif isinstance(df, GroupBy):
         gf = df
-        agg_columns = _check_and_get_agg_columns(gf.keys, *columns)
+        agg_columns = _check_and_get_agg_columns([gc.name for gc in gf._by], *columns)
         conds = []
         for agg_column in agg_columns:
             squeezed_column = squeeze_blank(agg_column[0])
@@ -60,7 +60,7 @@ def exec_PROJECT(df, ctx: dict, *columns):
         group_by_expr = 'pd.Series({' + ','.join(conds) + '})'
         log.debug('generated group-by expr:')
         log.debug(f'> {group_by_expr}')
-        log.debug(f'dataframe before group-by: \n{gf._selected_obj}')
+        # log.debug(f'dataframe before group-by: \n{gf._selected_obj}')
         # log.debug(gf._selected_obj)
         return gf.apply(lambda r: eval(group_by_expr)).reset_index()
     return None
@@ -94,7 +94,7 @@ def exec_GROUP(df, ctx: dict, group_items, proj_columns):
         agg_columns = _check_and_get_agg_columns(gkeys, *proj_columns)
         # df = _extend_columns(df, ctx, ('if(b>t2.b,1,-1)', 'if(b>t2.b,1,-1)'))
 
-    group_keys = [check_col_name(g[0], df.columns) for g in group_items]
+    group_keys = [check_col_name(g[0], [sc.name for sc in df.columns]) for g in group_items]
     gf = df.groupby(group_keys)
     return gf
 

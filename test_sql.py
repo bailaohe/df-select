@@ -61,7 +61,8 @@ if __name__ == '__main__':
 
     ctx_config_set_exec_engine(ctx, odps_engine)
 
-    result = df_select("select inst_id, inst_name, inst_status as state from dim_institution where inst_id < 20000000000000 order by inst_id desc limit 10", ctx=ctx)
+    # result = df_select("select inst_id, inst_name, inst_status as state from dim_institution where inst_id < 20000000000000 order by inst_id desc limit 10", ctx=ctx)
+    result = df_select("select inst_status as state, count(*) from dim_institution group by inst_status", ctx=ctx)
     # result = df_select("select * from df order by b desc limit 1", ctx=ctx, df=df)
     print('select result:')
     print(result)
