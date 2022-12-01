@@ -142,7 +142,7 @@ def reparse_token(token):
     :return: the parsed token item
     """
     import sqlparse as sp
-    return sp.parse('select ' + token)[0].tokens[-1]
+    return sp.parse('select ' + token.strip())[0].tokens[-1]
 
 
 def squeeze_blank(seg):

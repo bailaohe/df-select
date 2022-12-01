@@ -366,6 +366,8 @@ def _parse_from_clause(tokens, offset: int = 0):
                         seg=str(item)))
             if isinstance(item, Where):
                 return major_table, join_clauses, offset + idx
+            if item.is_keyword and item.normalized in ('LIMIT', 'ORDER BY'):
+                return major_table, join_clauses, offset + idx
             if 'JOIN' not in item.value.upper():
                 continue
 

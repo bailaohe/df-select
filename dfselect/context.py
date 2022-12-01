@@ -144,6 +144,8 @@ def ctx_config_set_exec_engine(ctx: dict, exec_engine):
     :return: None
     """
     ctx_set_config(ctx, _CONF_EXEC_ENGINE, exec_engine)
+    if hasattr(exec_engine, 'initialize'):
+        exec_engine.initialize(ctx)
 
 
 def ctx_config_get_exec_engine(ctx: dict):

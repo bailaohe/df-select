@@ -1,17 +1,17 @@
 # import pandas as pd
 # from pandas.core.groupby import DataFrameGroupBy
-import odps as o
+import odps
+from odps.df.expr.expressions import SliceCollectionExpr, CollectionExpr
 from sqlparse.sql import Identifier
 
-import odps
-
-from .expr import eval_expr
 from dfselect.context import ctx_load_table, ctx_config_get_table_loaders, ctx_config_add_table_loader, ctx_get_config
 from dfselect.errors import DFSelectExecError, DFSelectContextError
 from dfselect.log import log
 from dfselect.util import check_col_name, is_col_literal, reparse_token, squeeze_blank
+from .expr import eval_expr
 
 _o = None
+
 
 def exec_JOIN(df, ctx: dict, join_table, join_mode, join_exprs):
     """
@@ -40,12 +40,13 @@ def exec_JOIN(df, ctx: dict, join_table, join_mode, join_exprs):
 
 
 def exec_PROJECT(df, ctx: dict, *columns):
-    if isinstance(df, odps.df.DataFrame):
+    if isinstance(df, CollectionExpr):
         df = _extend_columns(df, *columns)
         col_names = list(map(lambda t: t[1], columns))
-        proj_col_names = [check_col_name(c, df.columns) for c in col_names]
+        proj_col_names = [check_col_name(c, [sc.name for sc in df.columns]) for c in col_names]
         return df[proj_col_names]
-    elif isinstance(df, DataFrameGroupBy):
+    # elif isinstance(df, DataFrameGroupBy):
+    else:
         gf = df
         agg_columns = _check_and_get_agg_columns(gf.keys, *columns)
         conds = []
@@ -83,7 +84,7 @@ def exec_ORDER(df, ctx: dict, *order_items):
 
 
 def exec_LIMIT(df, ctx: dict, from_idx, limit):
-    return df.iloc[from_idx:from_idx + limit]
+    return df[:from_idx + limit]
 
 
 def exec_GROUP(df, ctx: dict, group_items, proj_columns):
@@ -110,9 +111,9 @@ def initialize(ctx: dict):
     _o = ODPS(**odps_conn_config)
 
     def _tbl_loader_odps(table_key):
-        return _o.get_table(table_key)
+        return _o.get_table(table_key).to_df()
 
-    ctx_config_add_table_loader(_tbl_loader_odps)
+    ctx_config_add_table_loader(ctx, _tbl_loader_odps)
 
 
 def _load_table(ctx: dict, table: tuple):
@@ -141,22 +142,29 @@ def _load_udf(func_code: str):
 
 
 def _extend_columns(df, *columns):
-    if isinstance(df, odps.df.DataFrame):
+    if isinstance(df, CollectionExpr):
         assign_map = dict()
         for column in columns:
             col = column[0]
             if not col or is_col_literal(col):
                 const_val = col
                 column_series = df.apply(lambda r: const_val, axis=1)
+                assign_map[column[1]] = column_series
             else:
                 col_item = reparse_token(col)
                 if isinstance(col_item, Identifier):
-                    column_series = df.apply(lambda r: r[check_col_name(col, df.columns)], axis=1)
+                    # column_series = df.apply(lambda r: r[check_col_name(col, df.columns)], axis=1, names=col).rename(col)
+                    # column_series = df.apply(lambda r: str(r[col]), axis=1, names=[col_item.value],
+                    #                            types=["string"], reduce=True).rename(col_item.value)
+                    orig_column = check_col_name(col, [sc.name for sc in df.columns])
+                    df[column[1]] = df[orig_column]
                 else:
                     column_series = df.apply(lambda r: eval(eval_expr(col_item, df.columns, 'r')), axis=1)
-            assign_map[column[1]] = column_series
+                    assign_map[column[1]] = column_series
         if assign_map:
-            df = df.assign(**assign_map)
+            for (col_key, assign_series) in assign_map.items():
+                df[col_key] = assign_series
+            # df = df.assign(**assign_map)
     return df
 
 
