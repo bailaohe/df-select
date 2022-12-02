@@ -52,37 +52,26 @@ def _tbl_loader_external(table_key):
 from dfselect.exec import odps as odps_engine
 # from dfselect.exec import pandas as pd_engine
 
-if __name__ == '__main__':
-    df = pd.DataFrame({'a': [1, 2, 3], 'b': [3, 4, 5], 'c': [8, 8, 7], 'z': ['baihe', 'wyq', 'anny']})
-    df2 = pd.DataFrame({'b': [3, 5, 4], 'c': [7, 8, 8], 'd': [10, 11, 12]})
-
-    ctx = ctx_init(config=dict(odps=dict(access_id='LTAI5tSUZ7enitULy8ecptw5', secret_access_key='Vk4t1LsyR6LvRcUrQZSxzRDYJX9cTa', project='XiaomaiBI')))
-    # ctx_config_add_table_loader(ctx, _tbl_loader_external)
-
-    ctx_config_set_exec_engine(ctx, odps_engine)
-
-    # result = df_select("select inst_id, inst_name, inst_status as state from dim_institution where inst_id < 20000000000000 order by inst_id desc limit 10", ctx=ctx)
-    result = df_select("select inst_status as state, count(*) from dim_institution group by inst_status", ctx=ctx)
-    # result = df_select("select * from df order by b desc limit 1", ctx=ctx, df=df)
-    print('select result:')
-    print(result)
-
-
-
-# import odps
-# o = odps.ODPS(access_id='LTAI5tSUZ7enitULy8ecptw5', secret_access_key='Vk4t1LsyR6LvRcUrQZSxzRDYJX9cTa', project='XiaomaiBI')
-# df = o.get_table('dim_institution').to_df()
-# df = df[:10]
-# rf = df[['inst_id', 'inst_name']]
-# print(rf.head(10))
-
-
-# import pandas as pd
-# from dfsql import sql_query
+# if __name__ == '__main__':
+#     df = pd.DataFrame({'a': [1, 2, 3], 'b': [3, 4, 5], 'c': [8, 8, 7], 'z': ['baihe', 'wyq', 'anny']})
+#     df2 = pd.DataFrame({'b': [3, 5, 4], 'c': [7, 8, 8], 'd': [10, 11, 12]})
 #
-# df = pd.DataFrame({
-#     "animal": ["cat", "dog", "cat", "dog"],
-#     "height": [23,  100, 25, 71]
-# })
-# df.head()
-# print(sql_query("SELECT (1 + 2)>2 from animals_df", animals_df=df))
+#     ctx = ctx_init(config=dict(odps=dict(access_id='LTAI5tSUZ7enitULy8ecptw5', secret_access_key='Vk4t1LsyR6LvRcUrQZSxzRDYJX9cTa', project='XiaomaiBI')))
+#     # ctx_config_add_table_loader(ctx, _tbl_loader_external)
+#
+#     ctx_config_set_exec_engine(ctx, odps_engine)
+#
+#     # result = df_select("select inst_id, inst_name, inst_status as state from dim_institution where inst_id < 20000000000000 order by inst_id desc limit 10", ctx=ctx)
+#     result = df_select("select inst_status as state, count(*) from dim_institution group by inst_status", ctx=ctx)
+#     # result = df_select("select * from df order by b desc limit 1", ctx=ctx, df=df)
+#     print('select result:')
+#     print(result)
+
+
+
+import odps
+o = odps.ODPS(access_id='LTAI5tSUZ7enitULy8ecptw5', secret_access_key='Vk4t1LsyR6LvRcUrQZSxzRDYJX9cTa', project='XiaomaiBI')
+df = o.get_table('dim_institution').to_df()
+gf = df.groupby(['inst_status'])
+x = gf.agg(eval('gf.size()'))
+print(x.to_pandas())

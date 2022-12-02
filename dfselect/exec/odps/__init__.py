@@ -92,7 +92,6 @@ def exec_GROUP(df, ctx: dict, group_items, proj_columns):
     if proj_columns:
         gkeys = [t[0] for t in group_items]
         agg_columns = _check_and_get_agg_columns(gkeys, *proj_columns)
-        # df = _extend_columns(df, ctx, ('if(b>t2.b,1,-1)', 'if(b>t2.b,1,-1)'))
 
     group_keys = [check_col_name(g[0], [sc.name for sc in df.columns]) for g in group_items]
     gf = df.groupby(group_keys)
