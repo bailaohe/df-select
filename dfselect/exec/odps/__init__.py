@@ -1,7 +1,7 @@
 # import pandas as pd
 # from pandas.core.groupby import DataFrameGroupBy
 from odps.df.expr.expressions import CollectionExpr
-from odps.df.expr.groupby import GroupBy
+from odps.df.expr.groupby import GroupBy, BaseGroupBy
 from sqlparse.sql import Identifier
 
 from dfselect.context import ctx_load_table, ctx_config_get_table_loaders, ctx_config_add_table_loader, ctx_get_config
@@ -48,6 +48,7 @@ def exec_PROJECT(df, ctx: dict, *columns):
     elif isinstance(df, GroupBy):
         gf = df
         agg_columns = _check_and_get_agg_columns([gc.name for gc in gf._by], *columns)
+        group_columns = _get_columns_in_group(gf)
         conds = []
         for agg_column in agg_columns:
             squeezed_column = squeeze_blank(agg_column[0])
@@ -55,7 +56,7 @@ def exec_PROJECT(df, ctx: dict, *columns):
                 conds.append('gf.size()' + ('' if 'count(*)' in agg_column[1] else '.rename("' + agg_column[1] + '")'))
             else:
                 col_item = reparse_token(agg_column[0])
-                conds.append('"' + agg_column[1] + '":' + eval_expr(col_item, gf._selected_obj.columns, 'r'))
+                conds.append('(gf.' + eval_expr(col_item, group_columns, 'r') + ')' + ('' if 'count(*)' in agg_column[1] else '.rename("' + agg_column[1] + '")'))
 
         group_by_expr = '[' + ','.join(conds) + ']'
         log.debug('generated group-by expr:')
@@ -87,9 +88,9 @@ def exec_LIMIT(df, ctx: dict, from_idx, limit):
 def exec_GROUP(df, ctx: dict, group_items, proj_columns):
     # process projection at first to support group on expression (udf or operation)
     df = _extend_columns(df, *group_items)
-    if proj_columns:
-        gkeys = [t[0] for t in group_items]
-        agg_columns = _check_and_get_agg_columns(gkeys, *proj_columns)
+    # if proj_columns:
+    #     gkeys = [t[0] for t in group_items]
+    #     agg_columns = _check_and_get_agg_columns(gkeys, *proj_columns)
 
     group_keys = [check_col_name(g[0], [sc.name for sc in df.columns]) for g in group_items]
     gf = df.groupby(group_keys)
@@ -181,3 +182,8 @@ def _check_and_get_agg_columns(keys, *columns):
     if len(unmap_keys) > 0:
         raise DFSelectExecError("group-by keys {} not used in select clause".format(unmap_keys))
     return agg_columns
+
+def _get_columns_in_group(gf: GroupBy):
+    source_columns = [sc.name for sc in gf.args[0].columns]
+    by_columns = [bc.name for bc in gf.args[1]]
+    return [gc for gc in source_columns if gc not in by_columns]

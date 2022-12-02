@@ -1,4 +1,5 @@
 from sqlparse.sql import Operation, Function, Identifier, Parenthesis, IdentifierList, Comparison
+from sqlparse.tokens import Wildcard
 
 from dfselect.errors import DFSelectExecError
 from dfselect.util import check_col_name, is_skip_token
@@ -65,7 +66,8 @@ def eval_func(fn: Function, columns, row_key):
                 func_str += str(token)
     else:
         agg_func_name = _agg_func_dict[func_key.lower()]
-        func_str += '('
+        func_str += ''
+        has_wildcard = False
         for token in fn.tokens[1:]:
             if isinstance(token, Parenthesis):
                 agg_func_args = [t for t in token.tokens if not is_skip_token(t)]
@@ -79,11 +81,14 @@ def eval_func(fn: Function, columns, row_key):
                         func_str += f'{row_key}["{check_col_name(token_in_paren.value, columns)}"]'
                     elif isinstance(token_in_paren, (Operation, Comparison)):
                         func_str += eval_oper(token_in_paren, columns, row_key)
+                    elif token_in_paren.ttype is Wildcard:
+                        has_wildcard = True
+                        func_str += str(token_in_paren)
                     else:
                         func_str += str(token_in_paren)
             else:
                 func_str += str(token)
-        func_str += f').{agg_func_name}()'
+        func_str = f'({func_str}).{agg_func_name}()' if not has_wildcard else f'{agg_func_name}()'
     return func_str
 
 

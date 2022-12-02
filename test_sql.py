@@ -62,7 +62,7 @@ if __name__ == '__main__':
     ctx_config_set_exec_engine(ctx, odps_engine)
 
     # result = df_select("select inst_id, inst_name, inst_status as state from dim_institution where inst_id < 20000000000000 order by inst_id desc limit 10", ctx=ctx)
-    result = df_select("select inst_status as state, count(*) from dim_institution group by inst_status", ctx=ctx)
+    result = df_select("select inst_status as state, count(*)+1 from dim_institution group by inst_status", ctx=ctx)
     # result = df_select("select * from df order by b desc limit 1", ctx=ctx, df=df)
     print('select result:')
     print(result)
@@ -73,5 +73,5 @@ if __name__ == '__main__':
 # o = odps.ODPS(access_id='LTAI5tSUZ7enitULy8ecptw5', secret_access_key='Vk4t1LsyR6LvRcUrQZSxzRDYJX9cTa', project='XiaomaiBI')
 # df = o.get_table('dim_institution').to_df()
 # gf = df.groupby(['inst_status'])
-# x = gf.agg(eval('[gf.size().rename("fuck"), gf.size().rename("fuck2")]'))
+# x = gf.agg(eval('[(gf.size()+1).rename("fuck"), gf.size().rename("fuck2")]'))
 # print(x.to_pandas())
