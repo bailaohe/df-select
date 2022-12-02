@@ -52,17 +52,15 @@ def exec_PROJECT(df, ctx: dict, *columns):
         for agg_column in agg_columns:
             squeezed_column = squeeze_blank(agg_column[0])
             if squeezed_column == 'count(*)':
-                conds.append('"' + agg_column[1] + '":pd.Series(r.index).count()')
+                conds.append('gf.size()' + ('' if 'count(*)' in agg_column[1] else '.rename("' + agg_column[1] + '")'))
             else:
                 col_item = reparse_token(agg_column[0])
                 conds.append('"' + agg_column[1] + '":' + eval_expr(col_item, gf._selected_obj.columns, 'r'))
 
-        group_by_expr = 'pd.Series({' + ','.join(conds) + '})'
+        group_by_expr = '[' + ','.join(conds) + ']'
         log.debug('generated group-by expr:')
         log.debug(f'> {group_by_expr}')
-        # log.debug(f'dataframe before group-by: \n{gf._selected_obj}')
-        # log.debug(gf._selected_obj)
-        return gf.apply(lambda r: eval(group_by_expr)).reset_index()
+        return gf.agg(eval(group_by_expr))
     return None
 
 

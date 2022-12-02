@@ -20,6 +20,5 @@ def exec_operator(df, op_code: str, ctx: dict, *args):
 def exec_operators(select_cmds: list or tuple, ctx: dict):
     df = None
     for operator in select_cmds:
-        print(operator)
         df = exec_operator(df, operator[0], ctx, *operator[1])
     return df
